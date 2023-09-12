@@ -1,0 +1,136 @@
+from dataclasses import dataclass
+from typing import Dict, Union
+
+import uvicorn
+import json
+import datetime
+
+from urllib.parse import urlparse, urlunparse
+
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+
+from starlette.requests import Request
+
+app = FastAPI(title="FastAPI kakao-py example", version="1.0.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["POST"],
+    allow_headers=["*"],
+    allow_credentials=True,
+)
+
+app.mount('/images', StaticFiles(directory='images'), name='images')
+
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
+
+@app.post("/test_text")
+def read_item():
+    return {
+        "version": "2.0",
+        "template": {
+            "outputs": [
+                {
+                    "simpleText": {
+                        "msg": "교정 결과\n" + "**this is sample text**"
+                    }
+                }
+            ]
+        },
+        "data": {
+            "msg": "msg from HuBobBot!!"
+        }
+    }
+
+
+@app.post("/test_image")
+def read_image():
+    return {
+        "version": "2.0",
+        "template": {
+            "outputs": [
+                {
+                    "simpleImage": {
+                        "imageUrl": "https://t1.kakaocdn.net/openbuilder/sample/lj3JUcmrzC53YIjNDkqbWK.jpg",
+                        "altText": "보물상자입니다"
+                    }
+                }
+            ]
+        },
+        "data": {
+            "msg": "msg from HuBobBot!!"
+        }
+    }
+
+
+@app.post("/get_diet")
+async def read_card(request: Request):
+    def get_location(user_msg):
+        full_name_list = ['본사', '노포', '신평', '호포', '광안', '대저', '경전철', '안평']
+        semi_name_list = ['ㅂㅅ', 'ㄴㅍ', 'ㅅㅍ', 'ㅎㅍ', 'ㄱㅇ', 'ㄷㅈ', 'ㄱㅈㅊ', 'ㅇㅍ']
+        result = None
+        for full_name, semi_name in zip(full_name_list, semi_name_list):
+            if full_name in user_msg or semi_name in user_msg:
+                result = full_name
+                break
+        result = '경전철' if result == '안평' else result
+        return result
+
+    def get_diet_img_url(request_url, start_date, location):
+        new_path = request_url.path.replace(
+            '/get_diet', f'/images/{start_date}_{location}.jpg')
+        result = urlunparse((
+            request_url.scheme,
+            request_url.netloc,
+            new_path,
+            '',
+            '',
+            '',
+        ))
+        return str(result)
+
+    def get_last_monday(dt: datetime.datetime) -> str:
+        difference = dt.weekday()
+        last_monday_date = dt.date() - datetime.timedelta(days=difference)
+        return last_monday_date.strftime('%y%m%d')
+
+    body = await request.body()
+    request_body = json.loads(body.decode())
+    user_msg = request_body['userRequest']['utterance']
+    start_date = get_last_monday(datetime.datetime.now())
+    location = get_location(user_msg)
+    diet_img_url = get_diet_img_url(request.url, start_date, location)
+
+    return {
+        "version": "2.0",
+        "template": {
+            "outputs": [
+                {
+                    "basicCard": {
+                        "title": f"{location} 주간식단표 ({start_date} 부터)",
+                        "description": '',
+                        "thumbnail": {
+                            "imageUrl": diet_img_url,
+                        },
+                        "buttons": [
+                            {
+                                "action":  "webLink",
+                                "label": "크게보기",
+                                "webLinkUrl": diet_img_url,
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
