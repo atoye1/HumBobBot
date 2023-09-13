@@ -170,12 +170,12 @@ async def read_card(request: Request):
 
 
 @app.post("/upload_diet")
-async def save_diet_image(datetime: str = Form(), location: str = Form(), file: UploadFile = File()):
+async def save_diet_image(yymmdd: str = Form(), location: str = Form(), file: UploadFile = File()):
     image_directory = "images"  # You can change this to your desired directory
     if not os.path.exists(image_directory):
         os.makedirs(image_directory)
     # Construct the filename
-    filename = f"{datetime}_{location}.jpg"
+    filename = f"{yymmdd}_{location}.jpg"
     file_path = os.path.join(image_directory, filename)
 
     # # Save the uploaded image
