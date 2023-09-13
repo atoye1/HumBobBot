@@ -4,14 +4,19 @@ from typing import Dict, Union
 import uvicorn
 import json
 import datetime
+import shutil
+import os
 
 from urllib.parse import urlparse, urlunparse
 
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from starlette.requests import Request
+
+from models import ImageRequest
 
 app = FastAPI(title="FastAPI kakao-py example", version="1.0.0")
 app.add_middleware(
@@ -95,6 +100,19 @@ async def read_card(request: Request):
         ))
         return str(result)
 
+    def get_error_img_url(request_url):
+        new_path = request_url.path.replace(
+            '/get_diet', f'/images/error.jpg')
+        result = urlunparse((
+            request_url.scheme,
+            request_url.netloc,
+            new_path,
+            '',
+            '',
+            '',
+        ))
+        return str(result)
+
     def get_last_monday(dt: datetime.datetime) -> str:
         difference = dt.weekday()
         last_monday_date = dt.date() - datetime.timedelta(days=difference)
@@ -106,30 +124,72 @@ async def read_card(request: Request):
     start_date = get_last_monday(datetime.datetime.now())
     location = get_location(user_msg)
     diet_img_url = get_diet_img_url(request.url, start_date, location)
-
-    return {
-        "version": "2.0",
-        "template": {
-            "outputs": [
-                {
-                    "basicCard": {
-                        "title": f"{location} 주간식단표 ({start_date} 부터)",
-                        "description": '',
-                        "thumbnail": {
-                            "imageUrl": diet_img_url,
-                        },
-                        "buttons": [
-                            {
-                                "action":  "webLink",
-                                "label": "크게보기",
-                                "webLinkUrl": diet_img_url,
-                            }
-                        ]
+    file_name = diet_img_url.split('/')[-1]
+    if check_file_exist(file_name):
+        return {
+            "version": "2.0",
+            "template": {
+                "outputs": [
+                    {
+                        "basicCard": {
+                            "title": f"{location} 주간식단표 ({start_date} 부터)",
+                            "description": '',
+                            "thumbnail": {
+                                "imageUrl": diet_img_url,
+                            },
+                            "buttons": [
+                                {
+                                    "action":  "webLink",
+                                    "label": "크게보기",
+                                    "webLinkUrl": diet_img_url,
+                                }
+                            ]
+                        }
                     }
-                }
-            ]
+                ]
+            }
         }
-    }
+    else:
+        return {
+            "version": "2.0",
+            "template": {
+                "outputs": [
+                        {
+                            "basicCard": {
+                                "title": f"{location} 주간식단표 ({start_date} 부터) 를 찾지 못했습니다.",
+                                "description": '',
+                                "thumbnail": {
+                                    "imageUrl": get_error_img_url(request.url),
+                                },
+                            }
+                        }
+                ]
+            }
+
+        }
+
+
+@app.post("/upload_diet")
+async def save_diet_image(datetime: str = Form(), location: str = Form(), file: UploadFile = File()):
+    image_directory = "images"  # You can change this to your desired directory
+    if not os.path.exists(image_directory):
+        os.makedirs(image_directory)
+    # Construct the filename
+    filename = f"{datetime}_{location}.jpg"
+    file_path = os.path.join(image_directory, filename)
+
+    # # Save the uploaded image
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return {"filename": filename}
+
+
+def check_file_exist(filename):
+    file_path = os.path.join("images", filename)
+    if os.path.exists(file_path):
+        return True
+    return False
 
 
 if __name__ == "__main__":
