@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
 
-app = FastAPI(title="FastAPI kakao-py example", version="1.0.0")
+app = FastAPI(title="Humetro Bob Bot API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
