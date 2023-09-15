@@ -1,6 +1,7 @@
 import datetime
 import re
 import requests
+import json
 
 from Post import Post
 
@@ -66,7 +67,9 @@ class Diet:
         }
 
         post_response = requests.post(self.post_url, data=data, files=files)
-        print(post_response)
+        print(f'Uploading : {self.yymmdd}_{self.location}.jpg')
+
+        print('Upload result : ', json.loads(post_response.content)['filename'])
 
 
 if __name__ == "__main__":
