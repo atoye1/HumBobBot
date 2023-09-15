@@ -17,7 +17,7 @@ class Diet:
     @property
     def start_date(self) -> datetime.datetime | None:
 
-        def get_next_monday_year(date_str) -> str:
+        def get_next_monday_year() -> str:
             today = datetime.datetime.now()
             days_unitl_next_monday = (0 - today.weekday() + 7) % 7
             next_monday = today + \
@@ -29,8 +29,15 @@ class Diet:
         result = re.findall(pattern, self.title)
         if result:  # (9/11 ~ 9/17) pattern found
             date_string = result[0].split('~')[0]
-            next_monday_year = get_next_monday_year(date_string)
+            next_monday_year = get_next_monday_year()
             return datetime.datetime.strptime(f'{next_monday_year}/{date_string}', '%Y/%m/%d').date()
+
+        pattern = r"(\d+\.\d+~\d+\.\d+)" # pattern for 9.18~9.24
+        result = re.findall(pattern, self.title)
+        if result:
+            date_string = result[0].split('~')[0]
+            next_monday_year = get_next_monday_year()
+            return datetime.datetime.strptime(f'{next_monday_year}.{date_string}', '%Y.%m.%d').date()
         return self.post.target_date
 
     @property
