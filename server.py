@@ -16,7 +16,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from starlette.requests import Request
 
-from models import ImageRequest
 
 app = FastAPI(title="FastAPI kakao-py example", version="1.0.0")
 app.add_middleware(
