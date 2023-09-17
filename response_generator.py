@@ -50,7 +50,7 @@ def generate_carousel_cards(request_url, start_date, location):
             "buttons": [
                 {
                     "action":  "webLink",
-                    "label": "구경하기",
+                    "label": "크게보기",
                     "webLinkUrl": diet_img_url
                 }
             ]
@@ -73,7 +73,7 @@ def generate_carousel_cards(request_url, start_date, location):
                 "buttons": [
                     {
                         "action":  "webLink",
-                        "label": "구경하기",
+                        "label": "크게보기",
                         "webLinkUrl": next_diet_img_url
                     }
                 ]
