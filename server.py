@@ -16,6 +16,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from starlette.requests import Request
 
+from utils import check_file_exist
+from response_generator import generate_response
 
 app = FastAPI(title="Humetro Bob Bot API", version="1.0.0")
 app.add_middleware(
@@ -117,55 +119,22 @@ async def read_card(request: Request):
         last_monday_date = dt.date() - datetime.timedelta(days=difference)
         return last_monday_date.strftime('%y%m%d')
 
+    def get_next_monday(dt: datetime.datetime) -> str:
+        # Find out how many days until next Monday
+        difference = (7 - dt.weekday()) % 7
+        if difference == 0:  # Today is already Monday, so go to the next one
+            difference = 7
+        next_monday_date = dt.date() + datetime.timedelta(days=difference)
+        return next_monday_date.strftime('%y%m%d')
+
     body = await request.body()
     request_body = json.loads(body.decode())
+    request_url = request.url
     user_msg = request_body['userRequest']['utterance']
     start_date = get_last_monday(datetime.datetime.now())
     location = get_location(user_msg)
-    diet_img_url = get_diet_img_url(request.url, start_date, location)
-    file_name = diet_img_url.split('/')[-1]
-    if check_file_exist(file_name):
-        return {
-            "version": "2.0",
-            "template": {
-                "outputs": [
-                    {
-                        "basicCard": {
-                            "title": f"{location} 주간식단표 ({start_date} 부터)",
-                            "description": '',
-                            "thumbnail": {
-                                "imageUrl": diet_img_url,
-                            },
-                            "buttons": [
-                                {
-                                    "action":  "webLink",
-                                    "label": "크게보기",
-                                    "webLinkUrl": diet_img_url,
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }
-        }
-    else:
-        return {
-            "version": "2.0",
-            "template": {
-                "outputs": [
-                        {
-                            "basicCard": {
-                                "title": f"{location} 주간식단표 ({start_date} 부터) 를 찾지 못했습니다.",
-                                "description": '',
-                                "thumbnail": {
-                                    "imageUrl": get_error_img_url(request.url),
-                                },
-                            }
-                        }
-                ]
-            }
 
-        }
+    return generate_response(request_url, start_date, location)
 
 
 @app.post("/upload_diet")
@@ -182,13 +151,6 @@ async def save_diet_image(yymmdd: str = Form(), location: str = Form(), file: Up
         shutil.copyfileobj(file.file, buffer)
 
     return {"filename": filename}
-
-
-def check_file_exist(filename):
-    file_path = os.path.join("images", filename)
-    if os.path.exists(file_path):
-        return True
-    return False
 
 
 if __name__ == "__main__":
