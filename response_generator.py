@@ -34,9 +34,9 @@ def get_error_img_url(request_url):
 
 def get_schedule_string(location):
     if location == '노포':
-        return "\t조식 : 07:00 - 10:00\n\t중식 : 12:00 - 15:00\n\t석식 : 17:00 - 20:00"
+        return "조식 : 07:00 - 10:00\n중식 : 12:00 - 15:00\n석식 : 17:00 - 20:00"
     elif location == '신평':
-        return "\t조식 : 06:50 - 10:00\n\t중식 : 12:00 - 15:00\n\t석식 : 16:50 - 20:00"
+        return "조식 : 06:50 - 10:00\n중식 : 12:00 - 15:00\n석식 : 16:50 - 20:00"
     else:
         return ''
 
