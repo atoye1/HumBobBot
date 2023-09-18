@@ -32,6 +32,23 @@ def get_error_img_url(request_url):
     return str(result)
 
 
+def get_schedule_string(location):
+    if location == '노포':
+        return """
+    조식 : 07:00 - 10:00
+    중식 : 12:00 - 15:00
+    석식 : 17:00 - 20:00
+    """
+    elif location == '신평':
+        return """
+    조식 : 06:50 - 10:00
+    중식 : 12:00 - 15:00
+    석식 : 16:50 - 20:00
+    """
+    else:
+        return ''
+
+
 def generate_carousel_cards(request_url, start_date, location):
     diet_img_url = get_diet_img_url(request_url, start_date, location)
     file_name = diet_img_url.split('/')[-1]
@@ -43,7 +60,7 @@ def generate_carousel_cards(request_url, start_date, location):
     result.append(
         {
             "title": f"{location} 주간식단표 ({start_date} 부터)",
-            "description": "",
+            "description": get_schedule_string(location),
             "thumbnail": {
                 "imageUrl": diet_img_url
             },
@@ -66,7 +83,7 @@ def generate_carousel_cards(request_url, start_date, location):
         result.append(
             {
                 "title": f"{location} 주간식단표 ({next_date} 부터)",
-                "description": "",
+                "description": get_schedule_string(location),
                 "thumbnail": {
                     "imageUrl": next_diet_img_url
                 },
