@@ -164,9 +164,11 @@ async def get_rules(request: Request):
     body = await request.body()
     request_body = json.loads(body.decode())
     user_msg_raw = request_body['userRequest']['utterance']
+    # filter not worked due to namespace issue -> Fixed!!
+    user_msg = user_msg_raw
 
     for word in ['규정', '내규', '지침', '예규']:
-        user_msg = user_msg_raw.replace(word, '')
+        user_msg = user_msg.replace(word, '')
     user_msg_words = user_msg.split()
 
     results = []
