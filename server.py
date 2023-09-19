@@ -186,7 +186,7 @@ async def get_rules(request: Request):
                     {
                        "carousel": {
                            "type": "basicCard",
-                           "items": generate_rule_cards(results)
+                           "items": generate_rule_cards(results[:10])
                        }
                     }
                 ]
