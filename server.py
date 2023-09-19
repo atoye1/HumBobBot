@@ -163,10 +163,10 @@ async def get_rules(request: Request):
 
     body = await request.body()
     request_body = json.loads(body.decode())
-    user_msg = request_body['userRequest']['utterance']
+    user_msg_raw = request_body['userRequest']['utterance']
 
     for word in ['규정', '내규', '지침', '예규']:
-        user_msg = user_msg.replace(word, '')
+        user_msg = user_msg_raw.replace(word, '')
     user_msg_words = user_msg.split()
 
     results = []
@@ -197,7 +197,7 @@ async def get_rules(request: Request):
                     {
                         "basicCard": {
                             "title": "관련 규정을 찾지 못했습니다.",
-                            "description": f"입력한 메세지 : {user_msg}",
+                            "description": f"입력한 메세지 : {user_msg_raw}",
                             "thumbnail": {
                                 "imageUrl": "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png",
                             },
