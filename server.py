@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
 from utils import check_file_exist
-from response_generator import generate_response
+from response_generator import generate_response, generate_rule_cards
 
 app = FastAPI(title="Humetro Bob Bot API", version="1.0.0")
 app.add_middleware(
@@ -29,7 +29,9 @@ app.add_middleware(
 )
 
 app.mount('/images', StaticFiles(directory='images'), name='images')
-
+rules = None
+with open('./rules.json', 'r', encoding='utf-8') as f:
+    rules = json.load(f)
 
 @app.get("/")
 def read_root():
@@ -152,6 +154,41 @@ async def save_diet_image(yymmdd: str = Form(), location: str = Form(), file: Up
 
     return {"filename": filename}
 
+
+@app.post('/get_rules')
+async def get_rules(request: Request):
+    if rules in None:
+        raise ValueError('rules is None')
+    body = await request.body()
+    request_body = json.loads(body.decode())
+    user_msg = request_body['userRequest']['utterance']
+
+    for word in ['규정', '내규', '지침', '예규']:
+        user_msg = user_msg.replace(word, '')
+    user_msg_words = user_msg.split()
+
+    results = []
+    for user_msg_word in user_msg_words:
+        if not user_msg_word:
+            continue
+        for rule in rules:
+            if user_msg_word in rule['title']:
+                results.append(rule)
+    if results:
+         return {
+            "version": "2.0",
+            "template": {
+                "outputs": [
+                    {
+                        "carousel": {
+                            "type": "basicCard",
+                            "items": generate_rule_cards(results)
+                        }
+                    }
+                ]
+            }
+        }
+    return results
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -127,3 +127,26 @@ def generate_response(request_url, start_date, location):
             }
 
         }
+
+
+def generate_rule_cards(rules):
+    result = []
+    for rule in rules:
+        result.append(
+            {
+                "title": rule['title'],
+                "description": rule['created_at'],
+                "thumbnail": {
+                    "imageUrl":"https://www.public25.com/news/photo/202001/1247_889_429.jpg"
+                },
+                "buttons": [
+                    {
+                        "action":  "webLink",
+                        "label": "다운로드",
+                        "webLinkUrl": rule['file_url']
+                    }
+                ]
+            } 
+        )
+
+    return result
