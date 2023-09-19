@@ -159,7 +159,8 @@ async def save_diet_image(yymmdd: str = Form(), location: str = Form(), file: Up
 @app.post('/get_rules')
 async def get_rules(request: Request):
     if rules is None:
-        raise ValueError('rules is None')
+        raise HTTPException(status_code=404, detail="No rules are loaded")
+
     body = await request.body()
     request_body = json.loads(body.decode())
     user_msg = request_body['userRequest']['utterance']
@@ -189,7 +190,8 @@ async def get_rules(request: Request):
                 ]
             }
         }
-    return results
+    raise HTTPException(status_code=404, detail="No matching rules")
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
