@@ -33,6 +33,7 @@ rules = None
 with open('./rules.json', 'r', encoding='utf-8') as f:
     rules = json.load(f)
 
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
@@ -157,7 +158,7 @@ async def save_diet_image(yymmdd: str = Form(), location: str = Form(), file: Up
 
 @app.post('/get_rules')
 async def get_rules(request: Request):
-    if rules in None:
+    if rules is None:
         raise ValueError('rules is None')
     body = await request.body()
     request_body = json.loads(body.decode())
@@ -175,15 +176,15 @@ async def get_rules(request: Request):
             if user_msg_word in rule['title']:
                 results.append(rule)
     if results:
-         return {
+        return {
             "version": "2.0",
             "template": {
                 "outputs": [
                     {
-                        "carousel": {
-                            "type": "basicCard",
-                            "items": generate_rule_cards(results)
-                        }
+                       "carousel": {
+                           "type": "basicCard",
+                           "items": generate_rule_cards(results)
+                       }
                     }
                 ]
             }
