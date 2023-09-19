@@ -190,7 +190,23 @@ async def get_rules(request: Request):
                 ]
             }
         }
-    raise HTTPException(status_code=404, detail="No matching rules")
+    return {
+        "version": "2.0",
+        "template": {
+            "outputs": [
+                    {
+                        "basicCard": {
+                            "title": "관련 규정을 찾지 못했습니다.",
+                            "description": f"입력한 메세지 : {user_msg}",
+                            "thumbnail": {
+                                "imageUrl": "https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png",
+                            },
+                        }
+                    }
+            ]
+        }
+
+    }
 
 
 if __name__ == "__main__":
