@@ -2,6 +2,7 @@ import requests
 import datetime
 import time
 import re
+import sys
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -151,3 +152,5 @@ for i in range(19, -1, -1):
             diet.upload_image_to_server()
         except NoSuchElementException:
             print('element not found - ', title)
+
+sys.exit(0)
