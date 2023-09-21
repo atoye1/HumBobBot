@@ -37,6 +37,10 @@ def get_schedule_string(location):
         return "조식 : 07:00 - 10:00\n중식 : 12:00 - 15:00\n석식 : 17:00 - 20:00"
     elif location == '신평':
         return "조식 : 06:50 - 10:00\n중식 : 12:00 - 15:00\n석식 : 16:50 - 20:00"
+    elif location == '광안':
+        return "조식 : 미운영\n중식 : 11:30 - 14:30\n석식 : 16:30 - 19:30"
+    elif location == '호포':
+        return "조식 : 07:30 - 10:00\n중식 : 12:00 - 15:00\n석식 : 17:15 - 20:00"
     else:
         return ''
 
@@ -137,7 +141,7 @@ def generate_rule_cards(rules):
                 "title": rule['title'],
                 "description": rule['created_at'],
                 "thumbnail": {
-                    "imageUrl":"https://www.public25.com/news/photo/202001/1247_889_429.jpg"
+                    "imageUrl": "https://www.public25.com/news/photo/202001/1247_889_429.jpg"
                 },
                 "buttons": [
                     {
@@ -146,7 +150,7 @@ def generate_rule_cards(rules):
                         "webLinkUrl": rule['file_url']
                     }
                 ]
-            } 
+            }
         )
 
     return result
