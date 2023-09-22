@@ -2,6 +2,7 @@ import datetime
 import re
 import requests
 import json
+import base64
 
 from Post import Post
 
@@ -51,13 +52,16 @@ class Diet:
     def upload_image_to_server(self):
         if self.image_url is None:
             raise TypeError('image_url should not None')
-
-        response = requests.get(self.image_url)
-        if response.status_code != 200:
-            print("Failed to retrieve the file.")
-            exit()
-
-        image_content = response.content
+        
+        if 'data:image/png;base64' in self.image_url:
+            image_content = base64.b64decode(self.image_url.split(',')[1].strip()) 
+        else:
+            response = requests.get(self.image_url)
+        #ToDo url이 아니라 base64 인코딩된 이미지 자체가 입력으로 들어온 경우 처리하기
+            if response.status_code != 200:
+                print("Failed to retrieve the file.")
+                raise Exception('Failed to retrieve the file')
+            image_content = response.content
 
         # Data to send
         data = {
