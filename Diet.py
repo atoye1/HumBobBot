@@ -18,6 +18,16 @@ class Diet:
     @property
     def start_date(self) -> datetime.datetime | None:
 
+        def get_previous_monday(dt: datetime.datetime) -> datetime.datetime:
+            """
+            Returns the datetime of the given date if it's a Monday, 
+            otherwise returns the datetime of the previous Monday.
+            """
+            while dt.weekday() != 0:  # 0 represents Monday in the weekday system
+                dt -= datetime.timedelta(days=1)
+            return dt
+
+
         def get_next_monday_year() -> str:
             today = datetime.datetime.now()
             days_unitl_next_monday = (0 - today.weekday() + 7) % 7
@@ -31,14 +41,18 @@ class Diet:
         if result:  # (9/11 ~ 9/17) pattern found
             date_string = result[0].split('~')[0]
             next_monday_year = get_next_monday_year()
-            return datetime.datetime.strptime(f'{next_monday_year}/{date_string}', '%Y/%m/%d').date()
+            extracted_date = datetime.datetime.strptime(f'{next_monday_year}/{date_string}', '%Y/%m/%d').date()
+            return get_previous_monday(extracted_date)
 
         pattern = r"(\d+\.\d+~\d+\.\d+)" # pattern for 9.18~9.24
         result = re.findall(pattern, self.title)
+        # 코드가 지저분하고 로직관리가 한곳에서 되지 않으니, 내가 쓴 코드를 내가 착각해서 버그를 못고침.
+        # 분리하고, 책임을 나눠야한다.
+        # 결국 return 은 한곳에서하고, get_previous_monday도 스태틱메서드처럼 한곳에서 호출해야함.
         if result:
             date_string = result[0].split('~')[0]
             next_monday_year = get_next_monday_year()
-            return datetime.datetime.strptime(f'{next_monday_year}.{date_string}', '%Y.%m.%d').date()
+            return get_previous_monday(datetime.datetime.strptime(f'{next_monday_year}.{date_string}', '%Y.%m.%d').date())
         return self.post.target_date
 
     @property
