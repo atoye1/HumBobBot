@@ -29,6 +29,8 @@ app.add_middleware(
 )
 
 app.mount('/images', StaticFiles(directory='images'), name='images')
+app.mount("/rules", StaticFiles(directory="rules_html"), name="rules")
+
 rules = None
 with open('./rules.json', 'r', encoding='utf-8') as f:
     rules = json.load(f)
@@ -37,6 +39,27 @@ with open('./rules.json', 'r', encoding='utf-8') as f:
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
+
+@app.get("/rule/")
+async def get_rule(request: Request):
+    # Extract the rule parameter from the query string
+    rule_name = request.query_params.get("name")
+
+    if not rule_name:
+        raise HTTPException(status_code=400, detail="name parameter is required")
+
+    # Construct the path to the static HTML file
+    file_path = f"/rule/{rule_name}/index.html"
+
+    # Check if the file exists in our static directory
+    # Note: This is a simple way to check, in a real application you might want to use Python's os.path to verify.
+    if rule_name not in ["rule1", "rule2"]:  # Add other valid rule names as needed
+        raise HTTPException(status_code=404, detail="Rule not found")
+
+    # Redirect to the static file path
+    return {"file": file_path}
+
 
 
 @app.post("/test_text")
