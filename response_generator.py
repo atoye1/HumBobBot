@@ -99,6 +99,10 @@ def generate_response(request_url, start_date, location):
                     {
                         "carousel": {
                             "type": "basicCard",
+                            "header": {
+                                "title": f"{location} 주간식단표",
+                                "description": get_schedule_string(location),
+                            },
                             "items": generate_carousel_cards(request_url, start_date, location)
                         }
                     }
