@@ -38,7 +38,7 @@ def get_schedule_string(location):
     elif location == '신평':
         return "조식 : 06:50 - 10:00 | 중식 : 12:00 - 15:00 | 석식 : 16:50 - 20:00"
     elif location == '광안':
-        return "조식 : 미운영 \t 중식 : 11:30 - 14:30 \t 석식 : 16:30 - 19:30"
+        return "조식 : 미운영         | 중식 : 11:30 - 14:30 | 석식 : 16:30 - 19:30"
     elif location == '호포':
         return "조식 : 07:30 - 10:00 | 중식 : 12:00 - 15:00 | 석식 : 17:15 - 20:00"
     else:
