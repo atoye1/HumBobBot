@@ -79,7 +79,7 @@ def generate_carousel_cards(request_url, start_date, location):
                 "thumbnail": {
                     "imageUrl": next_diet_img_url,
                     "link": {
-                        "web": diet_img_url
+                        "web": next_diet_img_url
                     }
                 },
             }
