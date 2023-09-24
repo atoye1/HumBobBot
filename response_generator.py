@@ -58,15 +58,11 @@ def generate_carousel_cards(request_url, start_date, location):
             "title": f"{location} 주간식단표 ({start_date} 부터)",
             "description": get_schedule_string(location),
             "thumbnail": {
-                "imageUrl": diet_img_url
-            },
-            "buttons": [
-                {
-                    "action":  "webLink",
-                    "label": "크게보기",
-                    "webLinkUrl": diet_img_url
+                "imageUrl": diet_img_url,
+                "link": {
+                    "web": diet_img_url
                 }
-            ]
+            },
         }
     )
 
@@ -81,15 +77,11 @@ def generate_carousel_cards(request_url, start_date, location):
                 "title": f"{location} 주간식단표 ({next_date} 부터)",
                 "description": get_schedule_string(location),
                 "thumbnail": {
-                    "imageUrl": next_diet_img_url
-                },
-                "buttons": [
-                    {
-                        "action":  "webLink",
-                        "label": "크게보기",
-                        "webLinkUrl": next_diet_img_url
+                    "imageUrl": next_diet_img_url,
+                    "link": {
+                        "web": diet_img_url
                     }
-                ]
+                },
             }
         )
     return result
