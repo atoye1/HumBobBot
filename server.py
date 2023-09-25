@@ -47,7 +47,8 @@ async def get_rule(request: Request):
     rule_name = request.query_params.get("name")
 
     if not rule_name:
-        raise HTTPException(status_code=400, detail="name parameter is required")
+        raise HTTPException(
+            status_code=400, detail="name parameter is required")
 
     # Construct the path to the static HTML file
     file_path = f"/rule/{rule_name}/index.html"
@@ -59,7 +60,6 @@ async def get_rule(request: Request):
 
     # Redirect to the static file path
     return {"file": file_path}
-
 
 
 @app.post("/test_text")
@@ -209,7 +209,7 @@ async def get_rules(request: Request):
                     {
                        "carousel": {
                            "type": "basicCard",
-                           "items": generate_rule_cards(results[:10])
+                           "items": generate_rule_cards(request, results[:10])
                        }
                     }
                 ]

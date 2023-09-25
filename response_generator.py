@@ -125,9 +125,13 @@ def generate_response(request_url, start_date, location):
         }
 
 
-def generate_rule_cards(rules):
+def generate_rule_cards(request, rules):
     result = []
+    base_url = str(request.base_url)
     for rule in rules:
+        rule['web_url'] = base_url + 'rules' + '/' + \
+            rule['title'].replace(' ', '_') + '_' + \
+            rule['created_at'] + '/' + 'index.xhtml'
         result.append(
             {
                 "title": rule['title'],
@@ -136,6 +140,11 @@ def generate_rule_cards(rules):
                     "imageUrl": "https://www.public25.com/news/photo/202001/1247_889_429.jpg"
                 },
                 "buttons": [
+                    {
+                        "action":  "webLink",
+                        "label": "바로보기",
+                        "webLinkUrl": rule['web_url']
+                    },
                     {
                         "action":  "webLink",
                         "label": "다운로드",
