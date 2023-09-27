@@ -119,38 +119,42 @@ menu_url = "https://btcep.humetro.busan.kr/portal/default/main/eboard/eMenu"
 # driver.get(menu_url)
 # change_frame()
 
-# looping reversed
 for i in range(19, -1, -1):
-    driver.get(menu_url)
-    time.sleep(3)
-    change_frame()
-    board_el = driver.find_element(By.CSS_SELECTOR, 'form#boardList')
-    pages = board_el.find_elements(By.CSS_SELECTOR, 'tbody tr td.L a')
-    page = pages[i]
-    title = page.text
-    page_id = page.get_attribute('id')
-    page_script = f"ebList.readBulletin('eMenu','{page_id}');"
-    page_created_at = page.parent.find_elements(By.CLASS_NAME, 'C')[-2].text
-    print('Processing : ', title)
-    post = Post(title, page_created_at)
-    if post.is_diet:
-        driver.execute_script(page_script)
+    try:
+        driver.get(menu_url)
         time.sleep(3)
-        try:
-            diet = Diet(post)
-            diet.image_url = driver.find_element(By.CSS_SELECTOR, 'img').get_attribute('src')
-            print(diet.image_url)
-            err_count = 5
-            while err_count and 'icon_new' in diet.image_url:
-                err_count -= 1
-                driver.execute_script("window.scrollBy(0, 500);")
-                print(f'error, retrying {err_count}')
-                driver.execute_script(page_script)
-                time.sleep(3)
+        change_frame()
+        board_el = driver.find_element(By.CSS_SELECTOR, 'form#boardList')
+        pages = board_el.find_elements(By.CSS_SELECTOR, 'tbody tr td.L a')
+        page = pages[i]
+        title = page.text
+        page_id = page.get_attribute('id')
+        page_script = f"ebList.readBulletin('eMenu','{page_id}');"
+        page_created_at = page.parent.find_elements(By.CLASS_NAME, 'C')[-2].text
+        print('Processing : ', title)
+        post = Post(title, page_created_at)
+        if post.is_diet:
+            driver.execute_script(page_script)
+            time.sleep(3)
+            try:
                 diet = Diet(post)
                 diet.image_url = driver.find_element(By.CSS_SELECTOR, 'img').get_attribute('src')
-            diet.upload_image_to_server()
-        except NoSuchElementException:
-            print('element not found - ', title)
+                print(diet.image_url)
+                err_count = 5
+                while err_count and 'icon_new' in diet.image_url:
+                    err_count -= 1
+                    driver.execute_script("window.scrollBy(0, 500);")
+                    print(f'error, retrying {err_count}')
+                    driver.execute_script(page_script)
+                    time.sleep(3)
+                    diet = Diet(post)
+                    diet.image_url = driver.find_element(By.CSS_SELECTOR, 'img').get_attribute('src')
+                diet.upload_image_to_server()
+            except NoSuchElementException:
+                print('element not found - ', title)
+    except Exception as e:
+        print(f'below exception raised while handling {title}')
+        print(e)
 
+driver.quit()
 sys.exit(0)
