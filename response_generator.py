@@ -1,7 +1,8 @@
-from utils import check_file_exist
+from utils.os_util import check_file_exist
+from utils.date_util import get_next_monday
+
 from urllib.parse import urlunparse
 import datetime
-from utils import get_next_monday
 
 
 def get_diet_img_url(request_url, start_date, location):

@@ -16,7 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from starlette.requests import Request
 
-from utils import check_file_exist
+from utils.os_util import check_file_exist
 from response_generator import generate_response, generate_rule_cards
 
 app = FastAPI(title="Humetro Bob Bot API", version="1.0.0")
@@ -28,8 +28,9 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-app.mount('/images', StaticFiles(directory='images'), name='images')
-app.mount("/rules", StaticFiles(directory="rules_html"), name="rules")
+app.mount('/image', StaticFiles(directory='assets/image/diet'), name='images')
+app.mount('/image', StaticFiles(directory='assets/image/template'), name='images')
+app.mount("/regulation", StaticFiles(directory="assets/html/regulation"), name="rules")
 
 rules = None
 with open('./rules.json', 'r', encoding='utf-8') as f:
