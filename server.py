@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-from typing import Dict, Union
 
 import uvicorn
 import json
@@ -15,11 +13,17 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from starlette.requests import Request
+from starlette import status
 
 from utils.os_util import check_file_exist
 from response_generator import generate_response, generate_rule_cards
 
+from domain.diet import diet_router
+from domain.regulation import regulation_router
+
 app = FastAPI(title="Humetro Bob Bot API", version="1.0.0")
+startup_time = datetime.datetime.now()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,10 +40,14 @@ rules = None
 with open('./rules.json', 'r', encoding='utf-8') as f:
     rules = json.load(f)
 
+app.include_router(diet_router.router)
+app.include_router(regulation_router.router)
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+@app.get("/health", status_code=status.HTTP_200_OK)
+def health():
+    current_time = datetime.now()
+    uptime = current_time - startup_time
+    return {"msg": "server is up", "uptime":str(uptime)}
 
 
 @app.get("/rule/")
@@ -61,45 +69,6 @@ async def get_rule(request: Request):
 
     # Redirect to the static file path
     return {"file": file_path}
-
-
-@app.post("/test_text")
-def read_item():
-    return {
-        "version": "2.0",
-        "template": {
-            "outputs": [
-                {
-                    "simpleText": {
-                        "msg": "교정 결과\n" + "**this is sample text**"
-                    }
-                }
-            ]
-        },
-        "data": {
-            "msg": "msg from HuBobBot!!"
-        }
-    }
-
-
-@app.post("/test_image")
-def read_image():
-    return {
-        "version": "2.0",
-        "template": {
-            "outputs": [
-                {
-                    "simpleImage": {
-                        "imageUrl": "https://t1.kakaocdn.net/openbuilder/sample/lj3JUcmrzC53YIjNDkqbWK.jpg",
-                        "altText": "보물상자입니다"
-                    }
-                }
-            ]
-        },
-        "data": {
-            "msg": "msg from HuBobBot!!"
-        }
-    }
 
 
 @app.post("/get_diet")

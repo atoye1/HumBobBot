@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 class Diet(Base):
-    __tablename__ = "diet"
+    __tablename__ = "diets"
     
     id = Column(Integer, primary_key=True)
     img_url = Column(String(length=500), nullable=False)
@@ -19,11 +19,11 @@ class Diet(Base):
                          onupdate=func.now())
     start_date = Column(DateTime, nullable=False)
 
-    cafeteria_id = Column(Integer, ForeignKey("cafeteria.id"))
+    cafeteria_id = Column(Integer, ForeignKey("cafeterias.id"))
     cafeteria = relationship("Cafeteria", backref="diets")
 
 class Cafeteria(Base):
-    __tablename__ = "cafeteria"
+    __tablename__ = "cafeterias"
     
     id = Column(Integer, primary_key=True)
 
@@ -43,3 +43,13 @@ class Cafeteria(Base):
     lunch_end_time = Column(Time, nullable=True)
     dinner_start_time = Column(Time, nullable=True)
     dinner_end_time = Column(Time, nullable=True)
+    
+class Regulation(Base):
+    __tablename__ = "regulations"
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(length=100), nullable=False, unique=True)
+    create_date = Column(DateTime, nullable=False)
+    update_date = Column(DateTime, nullable=False)
+    file_url = Column(String(length=200), nullable=False)
+    html_url = Column(String(length=200), nullable=True)
