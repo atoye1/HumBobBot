@@ -1,13 +1,17 @@
 from fastapi import APIRouter
+from sqlalchemy.orm import Session
+from starlette import status
+
+from database import  get_db
 
 from database import SessionLocal
 from models import Regulation
 
 router = APIRouter(
-    prefix="/skill/rule",
+    prefix="/regulation",
 )
 
-@router.get('/list')
+@router.post('/skill')
 def question_list():
     db = SessionLocal()
     _question_list = db.query(Question).order_by(Question.create_date.desc()).all()
