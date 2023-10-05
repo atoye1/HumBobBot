@@ -8,14 +8,12 @@ import os
 from urllib.parse import urlparse, urlunparse
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
-from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from starlette.requests import Request
 from starlette import status
 
-from utils.os_util import check_file_exist
 from response_generator import generate_response, generate_rule_cards
 
 from domain.diet import diet_router
@@ -48,27 +46,6 @@ def health():
     current_time = datetime.now()
     uptime = current_time - startup_time
     return {"msg": "server is up", "uptime":str(uptime)}
-
-
-@app.get("/rule/")
-async def get_rule(request: Request):
-    # Extract the rule parameter from the query string
-    rule_name = request.query_params.get("name")
-
-    if not rule_name:
-        raise HTTPException(
-            status_code=400, detail="name parameter is required")
-
-    # Construct the path to the static HTML file
-    file_path = f"/rule/{rule_name}/index.html"
-
-    # Check if the file exists in our static directory
-    # Note: This is a simple way to check, in a real application you might want to use Python's os.path to verify.
-    if rule_name not in ["rule1", "rule2"]:  # Add other valid rule names as needed
-        raise HTTPException(status_code=404, detail="Rule not found")
-
-    # Redirect to the static file path
-    return {"file": file_path}
 
 
 @app.post("/get_diet")
