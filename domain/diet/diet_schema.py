@@ -3,11 +3,11 @@ import os
 from typing import Any, List
 import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from fastapi import UploadFile
 
-from domain.cafeteria.cafeteria_schema import CafeteriaLocationEnum
-from utils.date_util import get_next_monday, get_previous_monday
+from utils.date_util import get_next_monday
+from constants.cafeteria import *
 
 class User(BaseModel):
     id: str
@@ -33,7 +33,7 @@ class DietUpload(BaseModel):
     img_path: str = Field(default = "")
     start_date: str = Field(default = "")
     cafeteria_id: str= Field(default = "")
-    candidates: List[str] = ['본사', '노포', '신평', '호포', '광안', '대저', '경전철', '안평']
+    candidates: List[str] = cafeteria_full_name_list
 
     def __init__(self, **data:Any):
         super().__init__( **data)
@@ -70,3 +70,28 @@ class DietUpload(BaseModel):
         """
         # TODO 다른 로직도 추가하기
         self.start_date = get_next_monday(self.post_create_date) 
+
+class DietUtterance(BaseModel):
+    utterance: str
+    location: str | None = Field(default=None)
+    
+    def __init__(self, **data:Any):
+        super().__init__( **data)
+        self.set_location()
+    
+    def set_location(self):
+
+        result = None
+
+        for full_name, semi_name in zip(cafeteria_full_name_list, cafeteria_semi_name_list):
+            if full_name in self.utterance or semi_name in self.utterance:
+                result = full_name
+                break
+        result = '경전철' if result == '안평' else result
+        self.location = result
+
+    @validator("location", pre=True, always=True)
+    def check_location(cls, value):
+        if not value:
+            raise ValueError('Location cannot be None')
+        return value
