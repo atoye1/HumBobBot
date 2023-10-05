@@ -1,10 +1,11 @@
 from typing import List
 import datetime
-from models import Cafeteria
 from sqlalchemy.orm import Session
 
-def get_cafeteria_id(db: Session, utterance: str) -> int:
-    cafeteria = db.query(Cafeteria).filter_by(Cafeteria.location == utterance).one()
+from models import Cafeteria
+
+def get_cafeteria_id(db: Session, location: str) -> int:
+    cafeteria = db.query(Cafeteria).filter_by(location = location).one()
     return cafeteria.id
 
 def get_operation_times(db:Session, cafeteria_id: int) -> List[datetime.datetime]:
