@@ -27,15 +27,27 @@ def get_weekly_diets(db: Session, diet_utterance:DietUtterance) -> List[Diet]:
     return diets
 
 def create_diet(db: Session, diet_upload: DietUpload) -> None:
-    db_diet = Diet(
-        post_title = diet_upload.post_title,
-        post_create_date = diet_upload.post_create_date,
-        start_date = diet_upload.start_date,
-        cafeteria_id = diet_upload.cafeteria_id,
-        img_url = diet_upload.img_url,
-        img_path = diet_upload.img_path
-    )
-    db.add(db_diet)
+    db_diet = db.query(Diet).filter_by(
+    cafeteria_id=diet_upload.cafeteria_id,
+    start_date=diet_upload.start_date
+    ).first()
+
+    if db_diet:
+        db_diet.post_title = diet_upload.post_title
+        db_diet.post_create_date = diet_upload.post_create_date
+        db_diet.img_url = diet_upload.img_url
+        db_diet.img_path = diet_upload.img_path
+    # If the record doesn’t exist, create a new one
+    else:
+        db_diet = Diet(
+            post_title=diet_upload.post_title,
+            post_create_date=diet_upload.post_create_date,
+            start_date=diet_upload.start_date,
+            cafeteria_id=diet_upload.cafeteria_id,
+            img_url=diet_upload.img_url,
+            img_path=diet_upload.img_path
+        )
+        db.add(db_diet)
     db.commit()
 
 async def save_image(diet_upload: DietUpload) -> None:
