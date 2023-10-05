@@ -126,11 +126,12 @@ for i in range(19, -1, -1):
         change_frame()
         board_el = driver.find_element(By.CSS_SELECTOR, 'form#boardList')
         pages = board_el.find_elements(By.CSS_SELECTOR, 'tbody tr td.L a')
+        pages = board_el.find_elements(By.CSS_SELECTOR, 'tbody tr')
         page = pages[i]
-        title = page.text
-        page_id = page.get_attribute('id')
+        title = page.find_element(By.CSS_SELECTOR, 'td.L a').text
+        page_id = page.find_element(By.CSS_SELECTOR, 'td.L a').get_attribute('id')
         page_script = f"ebList.readBulletin('eMenu','{page_id}');"
-        page_created_at = page.parent.find_elements(By.CLASS_NAME, 'C')[-2].text
+        page_created_at = page.find_elements(By.CSS_SELECTOR, 'td.C')[-2].text
         print('Processing : ', title)
         post = Post(title, page_created_at)
         print(post.title, post.create_date)

@@ -11,8 +11,10 @@ class Diet:
     def __init__(self, post: Post):
         self.post = post
         self.title = post.title
+        self.post_title = post.title
+        self.post_create_date = post.create_date
         self.image_url = None
-        self.post_url = "http://130.162.153.197:8000/upload_diet/"
+        self.post_url = "http://130.162.153.197:8000/diet/upload"
         self.yymmdd = self.start_date.strftime('%y%m%d')
 
     @property
@@ -79,22 +81,19 @@ class Diet:
 
         # Data to send
         data = {
-            "yymmdd": self.yymmdd,  # Replace with your desired datetime
-            "location": self.location  # Replace with your desired location
+            "post_title": self.post_title,  # Replace with your desired datetime
+            "post_create_date": self.post_create_date  # Replace with your desired location
         }
 
         # Image to send
         files = {
-            "filename": "test_filename.jpg",
-            "file": image_content,
-            "size": len(image_content),
-            "headers": ""
+            "upload_file": ('upload_file.jpg', image_content, 'image/jpeg'),
         }
 
         post_response = requests.post(self.post_url, data=data, files=files)
-        print(f'Uploading : {self.yymmdd}_{self.location}.jpg')
+        print(f'Uploading : {self.post_title}')
 
-        print('Upload result : ', json.loads(post_response.content)['filename'])
+        print('Upload result : ', json.loads(post_response.content))
 
 
 if __name__ == "__main__":
