@@ -30,9 +30,10 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-app.mount('/image', StaticFiles(directory='assets/image/diet'), name='images')
-app.mount('/image', StaticFiles(directory='assets/image/template'), name='images')
-app.mount("/regulation", StaticFiles(directory="assets/html/regulation"), name="rules")
+# app.mount('/image', StaticFiles(directory='assets/image/diet'), name='diet')
+# app.mount('/image', StaticFiles(directory='assets/image/template'), name='template')
+app.mount('/image', StaticFiles(directory='assets/image'), name='image')
+app.mount("/regulation", StaticFiles(directory="assets/html/regulation"), name="regulation")
 
 rules = None
 with open('./rules.json', 'r', encoding='utf-8') as f:

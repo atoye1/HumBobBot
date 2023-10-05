@@ -7,7 +7,7 @@ import datetime
 
 def get_diet_img_url(request_url, start_date, location):
     new_path = request_url.path.replace(
-        '/get_diet', f'/images/{start_date}_{location}.jpg')
+        '/get_diet', f'/image/diet/{start_date}_{location}.jpg')
     result = urlunparse((
         request_url.scheme,
         request_url.netloc,
@@ -91,6 +91,7 @@ def generate_carousel_cards(request_url, start_date, location):
 def generate_response(request_url, start_date, location):
     diet_img_url = get_diet_img_url(request_url, start_date, location)
     file_name = diet_img_url.split('/')[-1]
+    print(file_name)
     if check_file_exist(file_name):
         # generate_carousel_cards(request_url, start_date, location)
         return {
@@ -130,7 +131,7 @@ def generate_rule_cards(request, rules):
     result = []
     base_url = str(request.base_url)
     for rule in rules:
-        rule['web_url'] = base_url + 'rules' + '/' + \
+        rule['web_url'] = base_url + 'regulation' + '/' + \
             rule['title'].replace(' ', '_') + '_' + \
             rule['created_at'] + '/' + 'index.xhtml'
         result.append(
