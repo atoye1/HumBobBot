@@ -108,7 +108,7 @@ class DietsCarouselResponse:
         }
         self.diets = diets
         self.host_scheme = 'http'
-        self.host_domain = socket.gethostbyname(socket.gethostname())
+        self.host_domain = '130.162.153.197'
         self.host_port = 8000
         self.host_netloc = f'{self.host_domain}:{self.host_port}'
         if len(self.diets) == 0:
