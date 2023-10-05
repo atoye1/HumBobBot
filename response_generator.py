@@ -1,12 +1,17 @@
-from utils import check_file_exist
+import socket
+from typing import List
+from utils.os_util import check_file_exist
+from utils.date_util import get_next_monday
+
 from urllib.parse import urlunparse
 import datetime
-from utils import get_next_monday
+
+from models import Diet
 
 
 def get_diet_img_url(request_url, start_date, location):
     new_path = request_url.path.replace(
-        '/get_diet', f'/images/{start_date}_{location}.jpg')
+        '/get_diet', f'/image/diet/{start_date}_{location}.jpg')
     result = urlunparse((
         request_url.scheme,
         request_url.netloc,
@@ -86,10 +91,66 @@ def generate_carousel_cards(request_url, start_date, location):
         )
     return result
 
+class DietsCarouselResponse:
+    def __init__(self, diets: List[Diet]):
+        self.template = {
+           "version": "2.0",
+            "template": {
+                "outputs": [
+                    {
+                        "carousel": {
+                            "type": "basicCard",
+                            "items": []
+                        }
+                    }
+                ]
+            }
+        }
+        self.diets = diets
+        self.host_scheme = 'http'
+        self.host_domain = socket.gethostbyname(socket.gethostname())
+        self.host_port = 8000
+        self.host_netloc = f'{self.host_domain}:{self.host_port}'
+        if len(self.diets) == 0:
+            raise ValueError("Must contain more than 1 diet results from DB")
+    
+    def get_absolute_url(self, img_url):
+        return urlunparse((
+        self.host_scheme,
+        self.host_netloc,
+        img_url,
+        '',
+        '',
+        '',
+    ))
 
+    def to_json(self):
+        items = self.template['template']['outputs'][0]['carousel']['items']
+        for diet in self.diets:
+            items.append({
+                "title": f"{diet.cafeteria.location} 주간식단표 ({diet.start_date.date()} 부터)",
+                "description": get_schedule_string(diet.cafeteria.location),
+                "thumbnail": {
+                    "imageUrl": self.get_absolute_url(diet.img_url),
+                    "link": {
+                        "web": self.get_absolute_url(diet.img_url)
+                    }
+                },
+            }
+        )
+        return self.template
+
+class DietsErrorResponse:
+    def __init__(self):
+        pass
+    def to_json(self):
+        pass
+    
+    
 def generate_response(request_url, start_date, location):
     diet_img_url = get_diet_img_url(request_url, start_date, location)
     file_name = diet_img_url.split('/')[-1]
+    print(file_name)
     if check_file_exist(file_name):
         # generate_carousel_cards(request_url, start_date, location)
         return {
@@ -129,7 +190,7 @@ def generate_rule_cards(request, rules):
     result = []
     base_url = str(request.base_url)
     for rule in rules:
-        rule['web_url'] = base_url + 'rules' + '/' + \
+        rule['web_url'] = base_url + 'regulation' + '/' + \
             rule['title'].replace(' ', '_') + '_' + \
             rule['created_at'] + '/' + 'index.xhtml'
         result.append(

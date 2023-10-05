@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-from typing import Dict, Union
 
 import uvicorn
 import json
@@ -10,16 +8,20 @@ import os
 from urllib.parse import urlparse, urlunparse
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
-from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from starlette.requests import Request
+from starlette import status
 
-from utils import check_file_exist
 from response_generator import generate_response, generate_rule_cards
 
+from domain.diet import diet_router
+from domain.regulation import regulation_router
+
 app = FastAPI(title="Humetro Bob Bot API", version="1.0.0")
+startup_time = datetime.datetime.now()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,77 +30,21 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-app.mount('/images', StaticFiles(directory='images'), name='images')
-app.mount("/rules", StaticFiles(directory="rules_html"), name="rules")
+app.mount('/image', StaticFiles(directory='assets/image'), name='image')
+app.mount("/regulation", StaticFiles(directory="assets/html/regulation"), name="regulation")
 
 rules = None
 with open('./rules.json', 'r', encoding='utf-8') as f:
     rules = json.load(f)
 
+app.include_router(diet_router.router)
+app.include_router(regulation_router.router)
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/rule/")
-async def get_rule(request: Request):
-    # Extract the rule parameter from the query string
-    rule_name = request.query_params.get("name")
-
-    if not rule_name:
-        raise HTTPException(
-            status_code=400, detail="name parameter is required")
-
-    # Construct the path to the static HTML file
-    file_path = f"/rule/{rule_name}/index.html"
-
-    # Check if the file exists in our static directory
-    # Note: This is a simple way to check, in a real application you might want to use Python's os.path to verify.
-    if rule_name not in ["rule1", "rule2"]:  # Add other valid rule names as needed
-        raise HTTPException(status_code=404, detail="Rule not found")
-
-    # Redirect to the static file path
-    return {"file": file_path}
-
-
-@app.post("/test_text")
-def read_item():
-    return {
-        "version": "2.0",
-        "template": {
-            "outputs": [
-                {
-                    "simpleText": {
-                        "msg": "교정 결과\n" + "**this is sample text**"
-                    }
-                }
-            ]
-        },
-        "data": {
-            "msg": "msg from HuBobBot!!"
-        }
-    }
-
-
-@app.post("/test_image")
-def read_image():
-    return {
-        "version": "2.0",
-        "template": {
-            "outputs": [
-                {
-                    "simpleImage": {
-                        "imageUrl": "https://t1.kakaocdn.net/openbuilder/sample/lj3JUcmrzC53YIjNDkqbWK.jpg",
-                        "altText": "보물상자입니다"
-                    }
-                }
-            ]
-        },
-        "data": {
-            "msg": "msg from HuBobBot!!"
-        }
-    }
+@app.get("/health", status_code=status.HTTP_200_OK)
+def health():
+    current_time = datetime.now()
+    uptime = current_time - startup_time
+    return {"msg": "server is up", "uptime":str(uptime)}
 
 
 @app.post("/get_diet")
