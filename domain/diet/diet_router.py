@@ -1,12 +1,15 @@
+from typing import Union
+
 from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile
 from fastapi.responses import JSONResponse
 
 from starlette import status 
 from sqlalchemy.orm import Session
+
 from database import get_db
 from models import Diet
-
 from domain.diet import diet_crud, diet_schema
+from response_generator import DietsCarouselResponse
 
 router = APIRouter(
     prefix="/diet",
@@ -16,13 +19,12 @@ router = APIRouter(
 def diet_skill(_diet_skill: diet_schema.DietSkill, db: Session = Depends(get_db)):
     # db에서 이번주와 다음주의 식단표를 조회한다.
     print(_diet_skill)
-    diet_utterance = diet_schema.DietUtterance(_diet_skill.userRequest.utterance)
+    diet_utterance = diet_schema.DietUtterance(utterance = _diet_skill.userRequest.utterance)
     diets = diet_crud.get_weekly_diets(db, diet_utterance)
     if not diets:
         raise HTTPException(status_code=404, detail="Recent diet not found")
-
-    _diet = db.query(Diet)
-    return _diet
+    response = DietsCarouselResponse(diets)
+    return response.to_json()
 
 
 # multipart-form 이라서 pydantic schema를 바로 사용할 수 없다.

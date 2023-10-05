@@ -4,7 +4,7 @@ from typing import List
 
 import datetime
 from models import Diet
-from sqlalchemy import and_, or_
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from domain.cafeteria.cafeteria_crud import get_cafeteria_id
 from domain.diet.diet_schema import *
@@ -12,15 +12,18 @@ from domain.diet.diet_schema import *
 from utils.date_util import get_next_monday, get_last_monday
 
 def get_weekly_diets(db: Session, diet_utterance:DietUtterance) -> List[Diet]:
-    cafeteria_id = get_cafeteria_id(diet_utterance.location)
-    diets= db.query(Diet).filter(
+    cafeteria_id = get_cafeteria_id(db, diet_utterance.location)
+    today = datetime.date.today()
+    today_datetime = datetime.datetime(today.year, today.month, today.day)
+    diets = db.query(Diet).filter(
         or_(
-            Diet.start_date == get_last_monday(datetime.datetime.now()),
-            Diet.start_date == get_next_monday(datetime.datetime.now())
+            Diet.start_date == get_last_monday(today_datetime),
+            Diet.start_date == get_next_monday(today_datetime)
         )
     ).filter(
         Diet.cafeteria_id == cafeteria_id
     ).all()
+    #TODO: check file exists를 수행해야한다.
     return diets
 
 def create_diet(db: Session, diet_upload: DietUpload) -> None:

@@ -50,15 +50,17 @@ class DietUpload(BaseModel):
             if elem in self.post_title:
                 if elem == '안평':
                     idx -= 1
-                self.cafeteria_id = idx
+                # db의 외래키는 1부터 시작하므로 +1 해줘야 한다.
+                self.cafeteria_id = idx + 1
                 return
         raise ValueError('Invalid cafeteria name')
 
     def set_img_url_path(self):
         if not self.cafeteria_id:
             raise ValueError('Invalid cafeteria id')
-        img_filename = f'{datetime.datetime.strftime(self.start_date, "%y%m%d")}_{self.candidates[self.cafeteria_id]}.jpg'
-        self.img_url = f'image/{img_filename}'
+        # TODO cafeteria db와 연동하는 로직 필요. 현재는 하드코딩 되어있음
+        img_filename = f'{datetime.datetime.strftime(self.start_date, "%y%m%d")}_{self.candidates[self.cafeteria_id - 1]}.jpg'
+        self.img_url = f'image/diet/{img_filename}'
         self.img_path = os.path.join('assets', 'image', 'diet', img_filename)
 
     def set_start_date(self):
@@ -73,25 +75,16 @@ class DietUpload(BaseModel):
 
 class DietUtterance(BaseModel):
     utterance: str
-    location: str | None = Field(default=None)
+    location: str = Field(default='')
     
     def __init__(self, **data:Any):
         super().__init__( **data)
-        self.set_location()
+        self.set_location()  # Call set_location before the super().__init__
     
     def set_location(self):
-
-        result = None
-
         for full_name, semi_name in zip(cafeteria_full_name_list, cafeteria_semi_name_list):
             if full_name in self.utterance or semi_name in self.utterance:
-                result = full_name
-                break
-        result = '경전철' if result == '안평' else result
-        self.location = result
-
-    @validator("location", pre=True, always=True)
-    def check_location(cls, value):
-        if not value:
-            raise ValueError('Location cannot be None')
-        return value
+                full_name = '경전철' if full_name == '안평' else full_name
+                self.location = full_name
+                return
+        raise ValueError("Invalid Location")
