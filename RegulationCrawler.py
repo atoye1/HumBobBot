@@ -1,10 +1,18 @@
 from typing import Dict
+
+import time
+import os
+import subprocess
+
 import datetime
+from urllib.parse import urlparse, parse_qs
+
 import requests
+
 from bs4 import BeautifulSoup
 from database import SessionLocal
+
 from models import Regulation
-from urllib.parse import urlparse, parse_qs
 class RegulationPost:
     def __init__(self, post_type, post_title, post_create_date, post_file_url, post_enforce_date, post_next_link) -> None:
         self.type = post_type
@@ -120,20 +128,81 @@ class RegulationCrawler:
         targets = self.db.query(Regulation).filter_by(
             html_url = None
         ).all()
+
+        if subprocess.run(['hwp5html', '--version']).returncode != 0:
+            raise Exception('hwp5html is not installed')
+
         for target in targets:
-            filename = parse_qs(urlparse(target.file_url).query).get('file_name_origin')[0]
-            print(filename)
-            with open('miscs/' + filename, 'wb') as f:
-                res = requests.get(self.base_url + target.file_url)
-                f.write(res.content)
-    def check_exists(self) -> None:
+            print('File Processing : ', target.title)
+            try:
+                self.download_file(target)
+                self.convert_file_to_html(target)
+                # self.remove_file(target)
+            except Exception as e:
+                print(e)
+                pass
+            # else:
+            #     # self.update_html_url(target)
+            # finally:
+            #     self.db.close()
+            
+
+    def check_file_exists(self) -> None:
         pass
     
-    def download_file(self) -> None:
+    def download_file(self, target: Regulation) -> None:
+        file_ext = parse_qs(urlparse(target.file_url).query).get('file_name_origin')[0].split('.')[-1].lower()
+        filename = f'[{target.type}]{target.title.replace(" ", "")}_{target.create_date.date()}.{file_ext}' 
+        print('File downloading : ', filename)
+        with open('miscs/' + filename, 'wb') as f:
+            res = requests.get(self.base_url + target.file_url)
+            f.write(res.content)
+        time.sleep(1)
+    
+    def update_html_url(self, target:Regulation) -> None:
+        target.html_url = ""
+        self.db.commit()
         pass
     
-    def convert_file_to_html(self) -> None:
-        pass
+    def convert_file_to_html(self, target: Regulation) -> None:
+        file_ext = parse_qs(urlparse(target.file_url).query).get('file_name_origin')[0].split('.')[-1].lower()
+        filename = f'[{target.type}]{target.title.replace(" ", "")}_{target.create_date.date()}.{file_ext}' 
+        file_dir = os.path.join(os.getcwd(), 'miscs')
+        file_path = os.path.join(file_dir, filename)
+        hwp_dest = os.path.join(os.getcwd(), 'assets', 'html', '_regulation', filename.replace('.hwp', ''))
+        pdf_dest = os.path.join(os.getcwd(), 'assets', 'html', '_regulation', filename.replace('.pdf', ''))
+        print('File converting : ', filename)
+        if 'hwp' in file_ext:
+            result = subprocess.run(['hwp5html', '--output', hwp_dest, file_path])
+        elif 'pdf' in file_ext:
+            """
+                1. 도커가 설치되어 있는지 확인한다.
+                2. 도커 이미지를 풀링한다.
+                3. 도커 풀된 도커 이미지를 바탕으로 커맨드를 실행한다.
+            """
+            print('pdf')
+            result = subprocess.run(
+                [
+                   'docker',
+                   'run',
+                   '-ti',
+                   '--rm',
+                   '-v',
+                   f'{file_dir}/:/pdf',
+                   '-w',
+                   '/pdf',
+                   'pdf2htmlex/pdf2htmlex:0.18.8.rc2-master-20200820-alpine-3.12.0-x86_64',
+                   '--dest-dir',
+                   pdf_dest,
+                   '--zoom',
+                   '1.3',
+                    filename,
+                ]
+            )
+            result = ""
+        if result.returncode != 0:
+            raise Exception(f'{filename} 이 정상 변환되지 않았습니다.')
+
 
 if __name__ == "__main__":
     crawler = RegulationCrawler()
