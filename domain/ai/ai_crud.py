@@ -65,6 +65,7 @@ def timeover():
             ]
         }
     }
+    return response
 
 def get_text_from_gpt(prompt):
     messages_prompt = [
@@ -98,7 +99,6 @@ def ai_chat(kakaorequest):
             f.write('')
     else:
         print("File exists")
-    
     
     response_queue = q.Queue()
     request_respond = threading.Thread(target=response_openai, args=(kakaorequest, response_queue, filename))
