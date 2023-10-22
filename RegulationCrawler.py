@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 import time
 import os
@@ -34,6 +34,7 @@ class RegulationCrawler:
 
     def __init__(self) -> None:
         self.current_post_info: Dict | None = dict()
+        self.error_list : List = []
 
     def handle_post(self, post_link) -> RegulationPost:
         post_html = requests.get(self.base_url + post_link)
@@ -174,6 +175,9 @@ class RegulationCrawler:
         print('File converting : ', filename)
         if 'hwp' in file_ext:
             result = subprocess.run(['hwp5html', '--output', hwp_dest, file_path])
+            if result.returncode != 0:
+                self.error_list.append(filename)
+                raise Exception(f'{filename} 이 정상 변환되지 않았습니다.')
         elif 'pdf' in file_ext:
             """
                 1. 도커가 설치되어 있는지 확인한다.
@@ -199,8 +203,8 @@ class RegulationCrawler:
                     filename,
                 ]
             )
-            result = ""
         if result.returncode != 0:
+            self.error_list.append(filename)
             raise Exception(f'{filename} 이 정상 변환되지 않았습니다.')
 
 
@@ -208,3 +212,4 @@ if __name__ == "__main__":
     crawler = RegulationCrawler()
     # crawler.crawl()
     crawler.handle_file_process()
+    print(crawler.error_list)
