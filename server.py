@@ -42,7 +42,7 @@ app.include_router(regulation_router.router)
 
 @app.get("/health", status_code=status.HTTP_200_OK)
 def health():
-    current_time = datetime.now()
+    current_time = datetime.datetime.now()
     uptime = current_time - startup_time
     return {"msg": "server is up", "uptime":str(uptime)}
 
