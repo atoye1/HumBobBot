@@ -3,6 +3,9 @@ import openai
 import threading
 import time
 import queue as q
+from dotenv import load_dotenv
+
+load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def text_response_format(bot_response):
@@ -74,7 +77,7 @@ def get_text_from_gpt(prompt):
 
 
 def get_image_url_from_dalle(prompt):
-    response = openai.Image.create(prompt=prompt, n=1, size="1024*1024")
+    response = openai.Image.create(prompt=prompt, n=1, size="1024X1024")
     image_url = response['data'][0]['url']
     return image_url
 

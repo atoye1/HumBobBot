@@ -2,11 +2,7 @@
 import uvicorn
 import json
 import datetime
-import shutil
-import os
 from dotenv import load_dotenv
-
-from urllib.parse import urlparse, urlunparse
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.staticfiles import StaticFiles
@@ -25,6 +21,7 @@ app = FastAPI(title="Humetro Bob Bot API", version="1.0.0")
 startup_time = datetime.datetime.now()
 
 load_dotenv()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

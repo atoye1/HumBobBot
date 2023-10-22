@@ -9,11 +9,8 @@ router = APIRouter(
     prefix="/ai",
 )
 
-openai.api_key = os.getenv('OPENAI_API_KEY')
-
 @router.post('/skill')
 async def ai_skill(request: Request):
-    print(openai.api_key)
     kakaorequest = await request.json()
     return ai_crud.ai_chat(kakaorequest)
 
