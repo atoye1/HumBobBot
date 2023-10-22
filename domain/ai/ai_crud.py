@@ -106,6 +106,7 @@ def ai_chat(kakaorequest):
     
     while (time.time() - start_time < 3.5):
         if not response_queue.empty():
+            response = response_queue.get()
             run_flag = True
             break
         else:
