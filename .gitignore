@@ -164,3 +164,4 @@ static
 *.hwp
 test_image
 miscs
+nohup.out
