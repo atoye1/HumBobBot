@@ -4,6 +4,7 @@ import json
 import datetime
 import shutil
 import os
+from dotenv import load_dotenv
 
 from urllib.parse import urlparse, urlunparse
 
@@ -18,10 +19,12 @@ from response_generator import generate_response, generate_rule_cards
 
 from domain.diet import diet_router
 from domain.regulation import regulation_router
+from domain.ai import ai_router
 
 app = FastAPI(title="Humetro Bob Bot API", version="1.0.0")
 startup_time = datetime.datetime.now()
 
+load_dotenv()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -39,6 +42,7 @@ with open('./rules.json', 'r', encoding='utf-8') as f:
 
 app.include_router(diet_router.router)
 app.include_router(regulation_router.router)
+app.include_router(ai_router.router)
 
 @app.get("/health", status_code=status.HTTP_200_OK)
 def health():
