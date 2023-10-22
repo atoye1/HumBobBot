@@ -77,7 +77,7 @@ def get_text_from_gpt(prompt):
 
 
 def get_image_url_from_dalle(prompt):
-    response = openai.Image.create(prompt=prompt, n=1, size="1024X1024")
+    response = openai.Image.create(prompt=prompt, n=1, size="1024x1024")
     image_url = response['data'][0]['url']
     return image_url
 
