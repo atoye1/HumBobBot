@@ -122,7 +122,7 @@ def response_openai(request, response_queue, filename):
         with open(filename) as f:
             last_update = f.read()
         if len(last_update.split()) > 1:
-            kind, bot_res, prompt = last_update.split()[0], last_update.split()[1], last_update.split()[2]
+            kind, bot_res, prompt = last_update.split('|')[0], last_update.split('|')[1], last_update.split('|')[2]
             if kind == 'img':
                 response_queue.put(image_response_format(bot_res, prompt))
             else:
@@ -133,7 +133,7 @@ def response_openai(request, response_queue, filename):
         prompt = request['userRequest']['utterance'].replace('/img', '')
         bot_res = get_image_url_from_dalle(prompt)
         response_queue.put(image_response_format(bot_res, prompt))
-        save_log = "img" + str(bot_res) + " " + str(prompt)
+        save_log = "img" + "|" + str(bot_res) + "|" + str(prompt)
         with open(filename, 'w') as f:
             f.write(save_log)
         pass
@@ -143,7 +143,7 @@ def response_openai(request, response_queue, filename):
         bot_res = get_text_from_gpt(prompt)
         response_queue.put(text_response_format(bot_res))
         
-        save_log = "ask" + str(bot_res) + " " + str(prompt)
+        save_log = "ask" + "|" + str(bot_res) + "|" + str(prompt)
         with open(filename, 'w') as f:
             f.write(save_log)
     else:
