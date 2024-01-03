@@ -1,8 +1,10 @@
+import os
 import requests
 import datetime
 import time
 import re
 import sys
+from dotenv import load_dotenv
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -13,8 +15,52 @@ from selenium.webdriver.firefox.options import Options
 from Post import Post
 from Diet import Diet
 
-my_id = "115232"
-my_pw = "ss!!!79975"
+class DietCrawler:
+    def __init__(self, driver, btcep_id, btcep_pw):
+        self.driver = driver
+        self.menu_url = "https://btcep.humetro.busan.kr/portal/default/main/eboard/eMenu"
+        self.btcep_id = btcep_id
+        self.btcep_pw = btcep_pw
+        pass
+
+    def _navigate_to_btcep(self):    
+        pass
+    
+    def _login(self):
+        pass
+
+    def _change_iframe(self):
+        pass
+
+    def _fetch_posts(self):
+        pass
+    
+    def _save_image(self):
+        pass
+
+    def _post_to_server(self):
+        pass
+    
+    def crawl(self):
+        self._navigate_to_btcep()
+        self._login()
+        self._change_iframe()
+        for i in range(10):
+            if not DietCrawler.is_menu_post('abc'):
+                continue
+            self._save_image()
+            self._post_to_server()
+        pass
+
+    @staticmethod
+    def is_menu_post(title: str) -> bool:
+        return '식단표' in title
+    
+    
+load_dotenv()
+
+btcep_id = os.getenv('BTCEP_ID')
+btcep_pw = os.getenv('BTCEP_PW')
 
 
 # Path to the GeckoDriver executable (replace with your actual path)
@@ -33,10 +79,10 @@ driver.get('https://btcep.humetro.busan.kr/')
 driver.implicitly_wait(10)
 print(driver.title)
 
-driver.find_element(By.ID, 'userId').send_keys(my_id)
-driver.find_element(By.ID, 'password').send_keys(my_pw)
+driver.find_element(By.ID, 'userId').send_keys(btcep_id)
+driver.find_element(By.ID, 'password').send_keys(btcep_pw)
 driver.find_element(By.CSS_SELECTOR, 'a.btn_login').click()
-driver.find_element(By.CSS_SELECTOR, 'input#certi_num').send_keys(my_id)
+driver.find_element(By.CSS_SELECTOR, 'input#certi_num').send_keys(btcep_id)
 
 driver.execute_script('login()')
 time.sleep(5)

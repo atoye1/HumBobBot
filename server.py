@@ -31,7 +31,7 @@ app.add_middleware(
 )
 
 app.mount('/image', StaticFiles(directory='assets/image'), name='image')
-app.mount("/regulation", StaticFiles(directory="assets/html/regulation"), name="regulation")
+app.mount('/regulation', StaticFiles(directory='assets/html/regulation'), name='regulation')
 
 rules = None
 with open('./rules.json', 'r', encoding='utf-8') as f:
@@ -41,7 +41,7 @@ app.include_router(diet_router.router)
 app.include_router(regulation_router.router)
 app.include_router(ai_router.router)
 
-@app.get("/health", status_code=status.HTTP_200_OK)
+@app.get('/health', status_code=status.HTTP_200_OK)
 def health():
     current_time = datetime.datetime.now()
     uptime = current_time - startup_time
@@ -51,7 +51,7 @@ def health():
 @app.post('/get_rules')
 async def get_rules(request: Request):
     if rules is None:
-        raise HTTPException(status_code=404, detail="No rules are loaded")
+        raise HTTPException(status_code=404, detail='No rules are loaded')
 
     body = await request.body()
     request_body = json.loads(body.decode())
