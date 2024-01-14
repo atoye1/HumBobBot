@@ -1,4 +1,5 @@
 import os
+import re
 
 from typing import Any, List
 import datetime
@@ -6,7 +7,7 @@ import datetime
 from pydantic import BaseModel, Field, validator
 from fastapi import UploadFile
 
-from utils.date_util import get_next_monday
+from utils.date_util import get_next_monday, get_last_monday
 from constants.cafeteria import *
 
 class User(BaseModel):
@@ -62,6 +63,40 @@ class DietUpload(BaseModel):
         img_filename = f'{datetime.datetime.strftime(self.start_date, "%y%m%d")}_{self.candidates[self.cafeteria_id - 1]}.jpg'
         self.img_url = f'image/diet/{img_filename}'
         self.img_path = os.path.join('assets', 'image', 'diet', img_filename)
+    
+    def extract_date_from_title(self):
+        date_patterns = [
+            r"\b(?:20\d{2}/)?\d{1,2}/\d{1,2}\b",
+            r"\b\d{4}/\d{1,2}/\d{1,2}\b",  # YYYY/MM/DD
+            r"\b\d{1,2}/\d{1,2}\b",        # MM/DD
+            r"\b\d{1,2}\.\d{1,2}\b",        # MM.DD
+            r"\b\d{4}-\d{1,2}-\d{1,2}\b",  # YYYY-MM-DD
+            r"\b\d{1,2}-\d{1,2}\b",  # MM-DD
+            r"\b\d{1,2}월\s?\d{1,2}일\b",
+        ]
+
+        date_regex = re.compile("|".join(date_patterns))
+        extracted_dates = date_regex.findall(self.post_title)
+
+        extracted_dates = [
+            date.replace(".", "/").replace("-", "/").replace("월", "/").replace("일", "").replace(" ", "")
+            for date in extracted_dates
+        ]
+
+        if not extracted_dates:
+            return None
+
+        datetime_list = []
+        year = datetime.datetime.now().year
+        for date in extracted_dates:
+            splitted_date = date.split('/')
+            if len(splitted_date) == 3:
+                splitted_date = splitted_date[1:]
+            month, day = splitted_date
+            datetime_list.append(datetime.datetime(year, int(month), int(day)))
+        datetime_list.sort()
+
+        return get_last_monday(datetime_list[0])
 
     def set_start_date(self):
         """
@@ -70,8 +105,7 @@ class DietUpload(BaseModel):
             날짜는 정규식으로 패턴을 찾는다.
             포스트가 작성된 날 다음의 첫번째 월요일이 시작일이다.
         """
-        # TODO 다른 로직도 추가하기
-        self.start_date = get_next_monday(self.post_create_date) 
+        self.start_date = self.extract_date_from_title(self) or get_next_monday(self.post_create_date) 
 
 class DietUtterance(BaseModel):
     utterance: str
@@ -88,3 +122,6 @@ class DietUtterance(BaseModel):
                 self.location = full_name
                 return
         raise ValueError("Invalid Location")
+
+
+
