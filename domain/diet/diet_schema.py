@@ -105,7 +105,7 @@ class DietUpload(BaseModel):
             날짜는 정규식으로 패턴을 찾는다.
             포스트가 작성된 날 다음의 첫번째 월요일이 시작일이다.
         """
-        self.start_date = self.extract_date_from_title(self) or get_next_monday(self.post_create_date) 
+        self.start_date = self.extract_date_from_title() or get_next_monday(self.post_create_date) 
 
 class DietUtterance(BaseModel):
     utterance: str
