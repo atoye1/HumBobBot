@@ -22,7 +22,18 @@ def diet_skill(_diet_skill: diet_schema.DietSkill, db: Session = Depends(get_db)
     diet_utterance = diet_schema.DietUtterance(utterance = _diet_skill.userRequest.utterance)
     diets = diet_crud.get_weekly_diets(db, diet_utterance)
     if not diets:
-        raise HTTPException(status_code=404, detail="Recent diet not found")
+        return {
+                "version": "2.0",
+                    "template": {
+                        "outputs": [
+                            {
+                                "simpleText": {
+                                    "text": "현재 식단 데이터가 없습니다. 나중에 다시 호출해주세요."
+                                }
+                            }
+                        ]
+                    }
+                }
     response = DietsCarouselResponse(diets)
     return response.to_json()
 
