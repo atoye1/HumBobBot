@@ -8,13 +8,18 @@ import sys
 # Custom modules
 import config
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Depends # Import Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from starlette.requests import Request
 from starlette import status
 
+from sqlalchemy.orm import Session # Import Session
+from sqlalchemy import or_ # Import or_
+
+from database import get_db # Import get_db
+from models import Regulation # Import Regulation
 from response_generator import generate_response, generate_rule_cards
 
 from domain.diet import diet_router
@@ -84,20 +89,20 @@ logger.info(f"Mounted static directory for regulation HTMLs at /regulation from 
 #   no relevant regulations were found.
 # ---
 
-rules = None
-try:
-    with open(config.RULES_JSON_PATH, 'r', encoding='utf-8') as f:
-        rules = json.load(f)
-    logger.info(f"Successfully loaded rules from {config.RULES_JSON_PATH}")
-except FileNotFoundError:
-    logger.error(f"Rules file not found at {config.RULES_JSON_PATH}. /get_rules endpoint will not work correctly.")
-    # rules remains None, which is handled in the endpoint
-except json.JSONDecodeError as e:
-    logger.error(f"Error decoding JSON from rules file {config.RULES_JSON_PATH}: {e}", exc_info=True)
-    # rules remains None
-except Exception as e:
-    logger.error(f"An unexpected error occurred while loading rules from {config.RULES_JSON_PATH}: {e}", exc_info=True)
-    # rules remains None
+# rules = None # Removed rules.json loading
+# try:
+#     with open(config.RULES_JSON_PATH, 'r', encoding='utf-8') as f:
+#         rules = json.load(f)
+#     logger.info(f"Successfully loaded rules from {config.RULES_JSON_PATH}")
+# except FileNotFoundError:
+#     logger.error(f"Rules file not found at {config.RULES_JSON_PATH}. /get_rules endpoint will not work correctly.")
+#     # rules remains None, which is handled in the endpoint
+# except json.JSONDecodeError as e:
+#     logger.error(f"Error decoding JSON from rules file {config.RULES_JSON_PATH}: {e}", exc_info=True)
+#     # rules remains None
+# except Exception as e:
+#     logger.error(f"An unexpected error occurred while loading rules from {config.RULES_JSON_PATH}: {e}", exc_info=True)
+#     # rules remains None
 
 
 app.include_router(diet_router.router)
@@ -117,10 +122,10 @@ def health():
 
 
 @app.post('/get_rules')
-async def get_rules(request: Request):
-    if rules is None:
-        logger.error("Ruleset (rules.json) not loaded or failed to load, but /get_rules was called.")
-        raise HTTPException(status_code=404, detail='No rules are loaded')
+async def get_rules(request: Request, db: Session = Depends(get_db)): # Added db dependency
+    # if rules is None: # Removed rules variable check
+    #     logger.error("Ruleset (rules.json) not loaded or failed to load, but /get_rules was called.")
+    #     raise HTTPException(status_code=404, detail='No rules are loaded')
 
     try:
         body = await request.body()
@@ -135,7 +140,7 @@ async def get_rules(request: Request):
         logger.error(f"Failed to decode JSON body in /get_rules: {e}", exc_info=True)
         raise HTTPException(status_code=400, detail="Invalid JSON format.")
     
-    logger.info(f"Received rule request for: '{user_msg_raw}'")
+    logger.info(f"Received rule request for: '{user_msg_raw}' from database.") # Updated log message
     
     # filter not worked due to namespace issue -> Fixed!!
     user_msg = user_msg_raw
@@ -145,15 +150,17 @@ async def get_rules(request: Request):
     user_msg_words = user_msg.split()
 
     results = []
-    for user_msg_word in user_msg_words:
-        if not user_msg_word: # Skip empty strings after split
-            continue
-        for rule in rules: # Assumes rules is a list of dicts with 'title'
-            if user_msg_word in rule.get('title', ''): # Safe access to rule['title']
-                results.append(rule)
+    if user_msg_words: # Ensure there are words to search for
+        query_filters = [Regulation.title.contains(word) for word in user_msg_words if word]
+        if query_filters:
+            try:
+                results = db.query(Regulation).filter(or_(*query_filters)).all()
+            except Exception as e:
+                logger.error(f"Database query failed in /get_rules: {e}", exc_info=True)
+                raise HTTPException(status_code=500, detail="Error querying regulations from database.")
     
     if results:
-        logger.info(f"Found {len(results)} matching rules for '{user_msg_raw}'. Returning top 10.")
+        logger.info(f"Found {len(results)} matching regulations in database for '{user_msg_raw}'. Returning top 10.") # Updated log message
         return {
             "version": "2.0",
             "template": {
@@ -168,7 +175,7 @@ async def get_rules(request: Request):
             }
         }
     else: # Explicitly handle no results case
-        logger.info(f"No matching rules found for '{user_msg_raw}'.")
+        logger.info(f"No matching regulations found in database for '{user_msg_raw}'.") # Updated log message
         return {
             "version": "2.0",
             "template": {
