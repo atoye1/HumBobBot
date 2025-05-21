@@ -6,7 +6,8 @@ from utils.date_util import get_next_monday
 from urllib.parse import urlunparse
 import datetime
 
-from models import Diet
+import config # Import config
+from models import Diet, Regulation # Import Regulation
 
 
 def get_diet_img_url(request_url, start_date, location):
@@ -186,33 +187,39 @@ def generate_response(request_url, start_date, location):
         }
 
 
-def generate_rule_cards(request, rules):
+def generate_rule_cards(request, rules: List[Regulation]): # Add type hint for rules
     result = []
     base_url = str(request.base_url)
     for rule in rules:
-        rule['web_url'] = base_url + 'regulation' + '/' + \
-            rule['title'].replace(' ', '_') + '_' + \
-            rule['created_at'] + '/' + 'index.xhtml'
-        result.append(
-            {
-                "title": rule['title'],
-                "description": rule['created_at'],
-                "thumbnail": {
-                    "imageUrl": "https://www.public25.com/news/photo/202001/1247_889_429.jpg"
-                },
-                "buttons": [
-                    {
-                        "action":  "webLink",
-                        "label": "바로보기",
-                        "webLinkUrl": rule['web_url']
-                    },
-                    {
-                        "action":  "webLink",
-                        "label": "다운로드",
-                        "webLinkUrl": rule['file_url']
-                    }
-                ]
+        buttons = []
+        # Construct "바로보기" (View Now) button URL
+        if rule.html_url:
+            web_url = base_url + 'regulation/' + rule.html_url
+            buttons.append({
+                "action": "webLink",
+                "label": "바로보기",
+                "webLinkUrl": web_url
+            })
+
+        # Construct "다운로드" (Download) button URL
+        if rule.file_url:
+            download_url = config.REGULATION_CRAWLER_BASE_URL + rule.file_url
+            buttons.append({
+                "action": "webLink",
+                "label": "다운로드",
+                "webLinkUrl": download_url
+            })
+        
+        card = {
+            "title": rule.title,
+            "description": rule.create_date.strftime('%Y-%m-%d') if rule.create_date else "날짜 정보 없음",
+            "thumbnail": {
+                "imageUrl": "https://www.public25.com/news/photo/202001/1247_889_429.jpg"
             }
-        )
+        }
+        if buttons: # Only add buttons if there are any
+            card["buttons"] = buttons
+        
+        result.append(card)
 
     return result
