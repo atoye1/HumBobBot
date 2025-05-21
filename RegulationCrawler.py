@@ -660,16 +660,16 @@ class RegulationCrawler:
         """
         if not config.KEEP_DOWNLOADED_ORIGINALS:
             try:
-            logger.info(
-                f"Removing original downloaded file: {downloaded_file_path}"
-            )
+                logger.info(
+                    f"Removing original downloaded file: {downloaded_file_path}"
+                )
                 os.remove(downloaded_file_path)
                 logger.info(f"Successfully removed: {downloaded_file_path}")
             except OSError as e:
-            logger.error(
-                f"Error removing original file {downloaded_file_path}: {e}",
-                exc_info=True,
-            )
+                logger.error(
+                    f"Error removing original file {downloaded_file_path}: {e}",
+                    exc_info=True,
+                )
         else:
             logger.debug(
                 f"KEEP_DOWNLOADED_ORIGINALS is True. Retaining file: {downloaded_file_path}"

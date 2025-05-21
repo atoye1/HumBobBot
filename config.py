@@ -24,7 +24,7 @@ REGULATION_HTML_DIR = os.path.join(ASSETS_DIR, "html", "_regulation") # For conv
 RULES_JSON_PATH = os.path.join(BASE_DIR, "rules.json")
 SERVER_IMAGE_ASSETS_PATH = os.path.join(ASSETS_DIR, "image")
 # This path is used by the server to serve statically, potentially different from where RegulationCrawler writes.
-SERVER_REGULATION_ASSETS_PATH = os.path.join(ASSETS_DIR, "html", "regulation")
+SERVER_REGULATION_ASSETS_PATH = os.path.join(ASSETS_DIR, "html", "_regulation")
 
 # Ensure all paths are absolute or correctly relative to the project structure.
 # Example: print(f"Base directory: {BASE_DIR}")
@@ -60,3 +60,10 @@ logging.basicConfig(
 
 # File Processing
 KEEP_DOWNLOADED_ORIGINALS = False # Set to True to keep original HWP/PDFs after HTML conversion
+
+# OpenAI Configuration
+OPENAI_GPT_SYSTEM_PROMPT = "You are a thoughtful assitant. Respond to all input in 50words and answer in korean"
+OPENAI_GPT_MODEL = "gpt-3.5-turbo"
+OPENAI_DALLE_IMAGE_SIZE = "1024x1024"
+AI_RESPONSE_CACHE_TTL_SECONDS = 300 # TTL for the in-memory cache in ai_crud.py
+AI_THREAD_TIMEOUT_SECONDS = 3.5 # Timeout for waiting on AI response thread
